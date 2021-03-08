@@ -51,7 +51,6 @@ server.post('/newdeck', async (req, res) => {
     title: "New Deck",
     content: "This is a fresh deck."
   });
-
   console.log(doc.id);
 });
 server.post('/getdecks', async (req, res) => {
@@ -67,6 +66,23 @@ server.post('/getdecks', async (req, res) => {
   });
   res.send(decks)
 });
+
+server.post('/getdeckdata', async (req, res) => {
+  const snapshot = await db.collection(req.body.uid).doc(req.body.did).collection('cards').get();
+  let cards = [];
+  snapshot.forEach(doc => {
+    //   console.log(doc.id, '=>', doc.data());
+    cards.push({
+      id: doc.id,
+      data: doc.data()
+    }
+    )
+  });
+  res.send(cards)
+});
+
+
+
 server.listen(port, hostname, () => {
   console.log(`Server is listening at https://127.0.0.1:300`);
 });
