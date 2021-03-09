@@ -53,6 +53,7 @@ server.post('/newdeck', async (req, res) => {
   });
   console.log(doc.id);
 });
+
 server.post('/getdecks', async (req, res) => {
   const snapshot = await db.collection(req.body.uid).get();
   let decks = [];
@@ -81,7 +82,13 @@ server.post('/getdeckdata', async (req, res) => {
   res.send(cards)
 });
 
-
+server.post('/newcard', async (req, res) => {
+  const data = {
+    title: req.body.title,
+    content: req.body.content
+  }
+  const createCard = await db.collection(req.body.uid).doc(req.body.did).collection("cards").add(data);
+});
 
 server.listen(port, hostname, () => {
   console.log(`Server is listening at https://127.0.0.1:300`);
