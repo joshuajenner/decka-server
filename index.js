@@ -85,7 +85,22 @@ server.post('/getdecks', async (req, res) => {
   res.send(decks)
 });
 
-server.post('/getdeckdata', async (req, res) => {
+server.post('/getdeckboards', async (req, res) => {
+  const snapshot = await db.collection(req.body.uid).doc(req.body.did).collection('boards').get();
+  let boards = [];
+  snapshot.forEach(doc => {
+    //   console.log(doc.id, '=>', doc.data());
+    boards.push({
+      id: doc.id,
+      title: doc.data().title,
+      type: doc.data().type
+    }
+    )
+  });
+  res.send(boards)
+});
+
+server.post('/getdeckcards', async (req, res) => {
   const snapshot = await db.collection(req.body.uid).doc(req.body.did).collection('cards').get();
   let cards = [];
   snapshot.forEach(doc => {
@@ -104,6 +119,15 @@ server.post('/getdeckdata', async (req, res) => {
 server.post('/updatedeck', async (req, res) => {
   await db.collection(req.body.uid).doc(req.body.did).update({
     title: req.body.title
+  }).then(
+    res.send("Success")
+  );
+});
+
+server.post('/updatecard', async (req, res) => {
+  await db.collection(req.body.uid).doc(req.body.did).collection("cards").doc(req.body.id).update({
+    title: req.body.title,
+    content: req.body.content
   }).then(
     res.send("Success")
   );
