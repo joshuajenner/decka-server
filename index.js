@@ -141,6 +141,12 @@ server.post('/deletedeck', async (req, res) => {
   );
 });
 
+server.post('/deletecard', async (req, res) => {
+  await db.collection(req.body.uid).doc(req.body.did).collection('cards').doc(req.body.id).delete().then(
+    res.send("Success")
+  );
+});
+
 // ---------------------------------------------- 
 
 server.listen(port, hostname, () => {
