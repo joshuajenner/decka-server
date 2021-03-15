@@ -59,6 +59,27 @@ server.post('/newdeck', async (req, res) => {
   );
 });
 
+server.post('/newboard', async (req, res) => {
+  let data;
+  if (req.body.type == 0) {
+    data = {
+      title: req.body.title,
+      type: req.body.type,
+      cards: []
+    }
+  } else if (req.body.type == 1) {
+    data = {
+      title: req.body.title,
+      type: req.body.type,
+      columns: []
+    }
+  };
+
+  const createCard = await db.collection(req.body.uid).doc(req.body.did).collection("boards").add(data).then(
+    res.send("Success")
+  );
+});
+
 server.post('/newcard', async (req, res) => {
   const data = {
     title: req.body.title,
@@ -68,6 +89,23 @@ server.post('/newcard', async (req, res) => {
     res.send("Success")
   );
 });
+
+
+// ---------------------------------------------- Board Operations
+
+server.post('/newcolumn', async (req, res) => {
+  const data = {
+    title: req.body.title,
+    order: req.body.order,
+    cards: []
+  }
+  await db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).update({
+    columns: admin.firestore.FieldValue.arrayUnion(data)
+  }).then(
+    res.send("Success")
+  );
+});
+
 
 // ---------------------------------------------- Get
 
@@ -90,12 +128,27 @@ server.post('/getdeckboards', async (req, res) => {
   let boards = [];
   snapshot.forEach(doc => {
     //   console.log(doc.id, '=>', doc.data());
-    boards.push({
-      id: doc.id,
-      title: doc.data().title,
-      type: doc.data().type
+    if (doc.data().type == 0) {
+      boards.push({
+        id: doc.id,
+        title: doc.data().title,
+        type: doc.data().type
+      })
+    } else if (doc.data().type == 1) {
+      boards.push({
+        id: doc.id,
+        title: doc.data().title,
+        type: doc.data().type,
+        columns: doc.data().columns
+      })
+    } else {
+      boards.push({
+        id: doc.id,
+        title: doc.data().title,
+        type: doc.data().type
+      })
     }
-    )
+    
   });
   res.send(boards)
 });
