@@ -97,15 +97,35 @@ server.post('/newcolumn', async (req, res) => {
   const data = {
     title: req.body.title,
     order: req.body.order,
-    cards: []
   }
-  await db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).update({
-    columns: admin.firestore.FieldValue.arrayUnion(data)
-  }).then(
+  await db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").add(data).then(
     res.send("Success")
   );
 });
 
+server.post('/getcolumns', async (req, res) => {
+  const snapshot = await db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").get();
+  let cols = [];
+  snapshot.forEach(doc => {
+    cols.push({
+      id: doc.id,
+      order: doc.data().order,
+      title: doc.data().title
+    })
+  });
+  for (col in cols) {
+    let cards = await db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").doc(cols[col].id).collection('cards').get();
+    cols[col].cards = [];
+    cards.forEach(c => {
+      cols[col].cards.push({
+        id: c.id,
+        refID: c.data.refID,
+        order: c.data().order
+      })
+    })
+  }
+  res.send(cols);
+});
 
 // ---------------------------------------------- Get
 
@@ -148,7 +168,7 @@ server.post('/getdeckboards', async (req, res) => {
         type: doc.data().type
       })
     }
-    
+
   });
   res.send(boards)
 });
