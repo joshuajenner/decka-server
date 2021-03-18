@@ -180,7 +180,9 @@ server.post('/getdeckcards', async (req, res) => {
     //   console.log(doc.id, '=>', doc.data());
     cards.push({
       id: doc.id,
-      data: doc.data()
+      title: doc.data().title,
+      content: doc.data().content,
+      order: doc.data().order
     }
     )
   });
