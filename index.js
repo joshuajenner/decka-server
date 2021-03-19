@@ -119,7 +119,8 @@ server.post('/getcolumns', async (req, res) => {
     cards.forEach(c => {
       cols[col].cards.push({
         id: c.id,
-        refID: c.data().refID,
+        title: c.data().title,
+        content: c.data().content,
         order: c.data().order
       })
     })
