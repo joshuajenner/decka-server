@@ -83,11 +83,14 @@ server.post('/newboard', async (req, res) => {
 server.post('/newcard', async (req, res) => {
   const data = {
     title: req.body.title,
-    content: req.body.content
+    content: req.body.content,
   }
   const createCard = await db.collection(req.body.uid).doc(req.body.did).collection("cards").add(data).then(
-    res.send("Success")
-  );
+    function (docRef) {
+      console.log(docRef.id);
+      res.send({ id: docRef.id });
+    });
+
 });
 
 
