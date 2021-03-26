@@ -84,6 +84,7 @@ server.post('/newcard', async (req, res) => {
   const data = {
     title: req.body.title,
     content: req.body.content,
+    order: req.body.order
   }
   const createCard = await db.collection(req.body.uid).doc(req.body.did).collection("cards").add(data).then(
     function (docRef) {
@@ -129,6 +130,50 @@ server.post('/getcolumns', async (req, res) => {
     })
   }
   res.send(cols);
+});
+
+server.post('/renamecolumn', async (req, res) => {
+  await db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").doc(req.body.cid).update(
+    {
+      title: req.body.title
+    }
+  ).then(
+    res.send("Success")
+  );
+});
+
+server.post('/updatecolumncards', async (req, res) => {
+  const snapshot = await db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").doc(req.body.cid).collection("cards").get();
+  let isFound;
+  for (card in req.body.cards) {
+    isFound = false;
+    snapshot.forEach(doc => {
+      if (doc.id ===  req.body.cards[card].id) {
+        isFound = true;
+      }
+    });
+    if (!isFound) {
+      db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").doc(req.body.cid).collection("cards").add({
+        title: req.body.cards[card].title,
+        content: req.body.cards[card].content,
+        order: req.body.cards[card].order
+      })
+    }
+  }
+
+  snapshot.forEach(doc => {
+    isFound = false;
+    for (card in req.body.cards) {
+      if (doc.id ===  req.body.cards[card].id) {
+        isFound = true;
+      }
+    }
+    if (!isFound) {
+      db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").doc(req.body.cid).collection("cards").doc(doc.id).delete();
+    }
+  });
+  
+  res.send("Success");
 });
 
 // ---------------------------------------------- Get
@@ -210,6 +255,40 @@ server.post('/updatecard', async (req, res) => {
   }).then(
     res.send("Success")
   );
+});
+
+server.post('/updateallcards', async (req, res) => {
+  const snapshot = await db.collection(req.body.uid).doc(req.body.did).collection("cards").get();
+  let isFound;
+  for (card in req.body.cards) {
+    isFound = false;
+    snapshot.forEach(doc => {
+      if (doc.id ===  req.body.cards[card].id) {
+        isFound = true;
+      }
+    });
+    if (!isFound) {
+      db.collection(req.body.uid).doc(req.body.did).collection("cards").add({
+        title: req.body.cards[card].title,
+        content: req.body.cards[card].content,
+        order: req.body.cards[card].order
+      })
+    }
+  }
+
+  snapshot.forEach(doc => {
+    isFound = false;
+    for (card in req.body.cards) {
+      if (doc.id ===  req.body.cards[card].id) {
+        isFound = true;
+      }
+    }
+    if (!isFound) {
+      db.collection(req.body.uid).doc(req.body.did).collection("cards").doc(doc.id).delete();
+    }
+  });
+  
+  res.send("Success");
 });
 
 // ---------------------------------------------- Delete
