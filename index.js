@@ -15,7 +15,7 @@ const port = process.env.PORT || 3000;
 // http://localhost:5000
 server.use(bodyParser.json());
 server.use(cors({
-  origin: 'https://romantic-bardeen-dffbd3.netlify.app'
+  origin: 'https://romantic-bardeen-dffbd3.netlify.app/'
 }));
 
 admin.initializeApp({
