@@ -7,7 +7,7 @@ const cors = require('cors');
 
 const admin = require('firebase-admin');
 
-// const hostname = '127.0.0.1';
+const hostname = '127.0.0.1';
 const port = process.env.PORT || 3000;
 
 
@@ -15,7 +15,7 @@ const port = process.env.PORT || 3000;
 // http://localhost:5000
 server.use(bodyParser.json());
 server.use(cors({
-  origin: 'https://romantic-bardeen-dffbd3.netlify.app/'
+  origin: 'http://localhost:5000'
 }));
 
 admin.initializeApp({
@@ -330,8 +330,41 @@ server.post('/deletecard', async (req, res) => {
   );
 });
 
+server.post('/deleteuser', async (req, res) => {
+    const collectionRef = db.collection(req.body.uid);
+    const query = collectionRef.orderBy('__name__')
+  
+    return new Promise((resolve, reject) => {
+      deleteQueryBatch(db, query, resolve).catch(reject);
+    });
+  
+  async function deleteQueryBatch(db, query, resolve) {
+    const snapshot = await query.get();
+  
+    const batchSize = snapshot.size;
+    if (batchSize === 0) {
+      // When there are no documents left, we are done
+      resolve();
+      return;
+    }
+  
+    // Delete documents in a batch
+    const batch = db.batch();
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+  
+    // Recurse on the next process tick, to avoid
+    // exploding the stack.
+    process.nextTick(() => {
+      deleteQueryBatch(db, query, resolve);
+    });
+  }
+});
+
 // ---------------------------------------------- 
 
-server.listen(port, () => {
+server.listen(port, hostname, () => {
   console.log(`Server is listening at https://127.0.0.1:300`);
 });
