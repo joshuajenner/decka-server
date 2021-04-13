@@ -58,9 +58,9 @@ server.post('/newdeck', async (req, res) => {
   const doc = await db.collection(req.body.uid).add({
     title: req.body.title
   }).then(
-      function (docRef) {
-        res.send({ id: docRef.id });
-      }
+    function (docRef) {
+      res.send({ id: docRef.id });
+    }
   );
 });
 
@@ -129,7 +129,7 @@ server.post('/getcolumns', async (req, res) => {
     })
   });
   for (col in cols) {
-    let cards = await db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").doc(cols[col].id).collection('cards').get();
+    let cards = await db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").doc(cols[col].id).collection('cards').orderBy('order').get();
     cols[col].cards = [];
     cards.forEach(c => {
       cols[col].cards.push({
@@ -157,11 +157,18 @@ server.post('/renamecolumn', async (req, res) => {
 server.post('/updatecolumncards', async (req, res) => {
   const snapshot = await db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").doc(req.body.cid).collection("cards").get();
   let isFound;
+  let ord = 0;
   for (card in req.body.cards) {
     isFound = false;
     snapshot.forEach(doc => {
-      if (doc.id ===  req.body.cards[card].id) {
+      if (doc.id === req.body.cards[card].id) {
         isFound = true;
+        db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").doc(req.body.cid).collection("cards").doc(req.body.cards[card].id).update({
+          title: req.body.cards[card].title,
+          content: req.body.cards[card].content,
+          order: ord
+        })
+        ord += 1;
       }
     });
     if (!isFound) {
@@ -171,13 +178,14 @@ server.post('/updatecolumncards', async (req, res) => {
         order: req.body.cards[card].order,
         dnd: req.body.cards[card].dnd
       })
+
     }
   }
 
   snapshot.forEach(doc => {
     isFound = false;
     for (card in req.body.cards) {
-      if (doc.id ===  req.body.cards[card].id) {
+      if (doc.id === req.body.cards[card].id) {
         isFound = true;
       }
     }
@@ -185,7 +193,7 @@ server.post('/updatecolumncards', async (req, res) => {
       db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").doc(req.body.cid).collection("cards").doc(doc.id).delete();
     }
   });
-  
+
   res.send("Success");
 });
 
@@ -277,7 +285,7 @@ server.post('/updateallcards', async (req, res) => {
   for (card in req.body.cards) {
     isFound = false;
     snapshot.forEach(doc => {
-      if (doc.id ===  req.body.cards[card].id) {
+      if (doc.id === req.body.cards[card].id) {
         isFound = true;
       }
     });
@@ -294,7 +302,7 @@ server.post('/updateallcards', async (req, res) => {
   snapshot.forEach(doc => {
     isFound = false;
     for (card in req.body.cards) {
-      if (doc.id ===  req.body.cards[card].id) {
+      if (doc.id === req.body.cards[card].id) {
         isFound = true;
       }
     }
@@ -302,7 +310,7 @@ server.post('/updateallcards', async (req, res) => {
       db.collection(req.body.uid).doc(req.body.did).collection("cards").doc(doc.id).delete();
     }
   });
-  
+
   res.send("Success");
 });
 
@@ -314,6 +322,23 @@ server.post('/reordercolumns', async (req, res) => {
       }
     )
   }
+});
+
+server.post('/deletecolumn', async (req, res) => {
+  // const cardsInCol = await db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").doc(req.body.cid).collection("cards").get();
+  // cardsInCol.forEach(doc => {
+  //   db.collection(req.body.uid).doc(req.body.did).collection("cards").doc(doc.id).set({
+  //     title: doc.data().title,
+  //     content: doc.data().content,
+  //     order: doc.data().order,
+  //     dnd: doc.data().dnd
+  //   })
+  //   db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").doc(req.body.cid).collection("cards").doc(doc.id).delete();
+  // });
+
+  const snapshot = await db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("columns").doc(req.body.cid);
+  snapshot.delete();
+  res.send({ message: "Success" })
 });
 
 // ---------------------------------------------- Delete
@@ -331,30 +356,30 @@ server.post('/deletecard', async (req, res) => {
 });
 
 server.post('/deleteuser', async (req, res) => {
-    const collectionRef = db.collection(req.body.uid);
-    const query = collectionRef.orderBy('__name__')
-  
-    return new Promise((resolve, reject) => {
-      deleteQueryBatch(db, query, resolve).catch(reject);
-    });
-  
+  const collectionRef = db.collection(req.body.uid);
+  const query = collectionRef.orderBy('__name__')
+
+  return new Promise((resolve, reject) => {
+    deleteQueryBatch(db, query, resolve).catch(reject);
+  });
+
   async function deleteQueryBatch(db, query, resolve) {
     const snapshot = await query.get();
-  
+
     const batchSize = snapshot.size;
     if (batchSize === 0) {
       // When there are no documents left, we are done
       resolve();
       return;
     }
-  
+
     // Delete documents in a batch
     const batch = db.batch();
     snapshot.docs.forEach((doc) => {
       batch.delete(doc.ref);
     });
     await batch.commit();
-  
+
     // Recurse on the next process tick, to avoid
     // exploding the stack.
     process.nextTick(() => {
