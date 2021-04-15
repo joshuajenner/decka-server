@@ -7,7 +7,7 @@ const cors = require('cors');
 
 const admin = require('firebase-admin');
 
-const hostname = '127.0.0.1';
+// const hostname = '127.0.0.1';
 const port = process.env.PORT || 3000;
 
 
@@ -15,7 +15,7 @@ const port = process.env.PORT || 3000;
 // http://localhost:5000
 server.use(bodyParser.json());
 server.use(cors({
-  origin: 'http://localhost:5000'
+  origin: 'https://romantic-bardeen-dffbd3.netlify.app'
 }));
 
 admin.initializeApp({
@@ -359,7 +359,7 @@ server.post('/getgridcards', async (req, res) => {
 //     cards.push({id: doc.id, days: []})
 //   });
 
-  
+
 
 //   for (d in monthLength) {
 //     let d2 =  d + 1;
@@ -379,7 +379,7 @@ server.post('/getgridcards', async (req, res) => {
 //           //       });
 //       });
 //     }
-    
+
 //   }
 //   res.send(cards)
 // });
@@ -387,7 +387,7 @@ server.post('/getgridcards', async (req, res) => {
 
 
 server.post('/getcalendarcards', async (req, res) => {
-  let month = {id: req.body.month, days: []};
+  let month = { id: req.body.month, days: [] };
   let monthLength = new Date(req.body.year, req.body.month + 1, 0).getDate();
 
   for (let day = 1; day <= monthLength; day++) {
@@ -395,9 +395,9 @@ server.post('/getcalendarcards', async (req, res) => {
       id: day,
       cards: []
     })
-    const snapshot = await db.collection(req.body.uid).doc(req.body.did).collection('boards').doc(req.body.bid).collection(String(req.body.year)).doc(String(month)).collection('days').doc(String(day)).collection("cards").get();
+    const snapshot = await db.collection(req.body.uid).doc(req.body.did).collection('boards').doc(req.body.bid).collection(req.body.year).doc(month.id).collection('days').doc(day.toString()).collection("cards").get();
     snapshot.forEach(doc => {
-      month.days[day].cards.push({
+      month.days[day - 1].cards.push({
         id: doc.id,
         title: doc.data().title,
         content: doc.data().content,
@@ -413,15 +413,15 @@ server.post('/getcalendarcards', async (req, res) => {
 server.post('/updatecalendarcards', async (req, res) => {
   let isFound;
   for (card in req.body.cards) {
-    db.collection(req.body.uid).doc(req.body.did).collection('boards').doc(req.body.bid).collection(String(req.body.year)).doc(String(req.body.month)).collection('days').doc(req.body.dd).collection("cards").doc(String(req.body.cards[card].id)).set({
-        title: req.body.cards[card].title,
-        content: req.body.cards[card].content,
-        order: req.body.cards[card].order,
-        dnd: req.body.cards[card].dnd,
-      })
+    db.collection(req.body.uid).doc(req.body.did).collection('boards').doc(req.body.bid).collection(req.body.year).doc(req.body.month).collection('days').doc(req.body.day).collection("cards").doc(req.body.cards[card].id).set({
+      title: req.body.cards[card].title,
+      content: req.body.cards[card].content,
+      order: req.body.cards[card].order,
+      dnd: req.body.cards[card].dnd,
+    })
   }
 
-  const snapshot = await db.collection(req.body.uid).doc(req.body.did).collection('boards').doc(req.body.bid).collection(String(req.body.year)).doc(String(req.body.month)).collection('days').doc(req.body.dd).collection("cards").get();
+  const snapshot = await db.collection(req.body.uid).doc(req.body.did).collection('boards').doc(req.body.bid).collection(String(req.body.year)).doc(String(req.body.month)).collection('days').doc(req.body.day).collection("cards").get();
 
   snapshot.forEach(doc => {
     isFound = false;
@@ -431,7 +431,7 @@ server.post('/updatecalendarcards', async (req, res) => {
       }
     }
     if (!isFound) {
-      db.collection(req.body.uid).doc(req.body.did).collection("cards").doc(doc.id).delete();
+      db.collection(req.body.uid).doc(req.body.did).collection('boards').doc(req.body.bid).collection(String(req.body.year)).doc(String(req.body.month)).collection('days').doc(req.body.day).collection("cards").doc(doc.id).delete();
     }
   });
 });
@@ -544,14 +544,14 @@ server.post('/updateallcards', async (req, res) => {
     //   }
     // });
     // if (!isFound) {
-      db.collection(req.body.uid).doc(req.body.did).collection("cards").doc(req.body.cards[card].id).set({
-        title: req.body.cards[card].title,
-        content: req.body.cards[card].content,
-        order: req.body.cards[card].order,
-        dnd: req.body.cards[card].dnd,
-        xval: 0,
-        yval: 0
-      })
+    db.collection(req.body.uid).doc(req.body.did).collection("cards").doc(req.body.cards[card].id).set({
+      title: req.body.cards[card].title,
+      content: req.body.cards[card].content,
+      order: req.body.cards[card].order,
+      dnd: req.body.cards[card].dnd,
+      xval: 0,
+      yval: 0
+    })
     // }
   }
 
@@ -583,14 +583,14 @@ server.post('/updategridcards', async (req, res) => {
     //   }
     // });
     // if (!isFound) {
-      db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("cards").doc(req.body.cards[card].id).set({
-        title: req.body.cards[card].title,
-        content: req.body.cards[card].content,
-        order: req.body.cards[card].order,
-        dnd: req.body.cards[card].dnd,
-        xval: 0,
-        yval: 0
-      })
+    db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("cards").doc(req.body.cards[card].id).set({
+      title: req.body.cards[card].title,
+      content: req.body.cards[card].content,
+      order: req.body.cards[card].order,
+      dnd: req.body.cards[card].dnd,
+      xval: 0,
+      yval: 0
+    })
     // }
   }
 
@@ -619,14 +619,14 @@ server.post('/updatefreecards', async (req, res) => {
     //   }
     // });
     // if (!isFound) {
-      db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("cards").doc(req.body.cards[card].id).set({
-        title: req.body.cards[card].title,
-        content: req.body.cards[card].content,
-        order: req.body.cards[card].order,
-        dnd: req.body.cards[card].dnd,
-        xval: req.body.cards[card].xval,
-        yval: req.body.cards[card].yval
-      })
+    db.collection(req.body.uid).doc(req.body.did).collection("boards").doc(req.body.bid).collection("cards").doc(req.body.cards[card].id).set({
+      title: req.body.cards[card].title,
+      content: req.body.cards[card].content,
+      order: req.body.cards[card].order,
+      dnd: req.body.cards[card].dnd,
+      xval: req.body.cards[card].xval,
+      yval: req.body.cards[card].yval
+    })
     // }
   }
 
@@ -720,6 +720,6 @@ server.post('/deleteuser', async (req, res) => {
 
 // ---------------------------------------------- 
 
-server.listen(port, hostname, () => {
+server.listen(port, () => {
   console.log(`Server is listening at https://127.0.0.1:300`);
 });
