@@ -1,14 +1,13 @@
 require('dotenv').config()
 
-const server = require('express')();
-// const http = require('http').Server(server);
+const express = require('express');
+const server = express()
+const port = process.env.PORT || 3000;
+
 const bodyParser = require('body-parser');
 const cors = require('cors');
-
 const admin = require('firebase-admin');
 
-// const hostname = '127.0.0.1';
-const port = process.env.PORT || 3000;
 
 // new comment
 // https://romantic-bardeen-dffbd3.netlify.app
@@ -721,5 +720,5 @@ server.post('/deleteuser', async (req, res) => {
 // ---------------------------------------------- 
 
 server.listen(port, () => {
-  console.log(`Server is listening at https://127.0.0.1:300`);
+  console.log(`Server is listening at https://127.0.0.1:3000`);
 });
