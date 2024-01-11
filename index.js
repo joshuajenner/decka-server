@@ -13,10 +13,7 @@ const admin = require('firebase-admin');
 // https://romantic-bardeen-dffbd3.netlify.app
 // http://localhost:5000
 server.use(bodyParser.json());
-server.use(cors({
-  origin: 'https://romantic-bardeen-dffbd3.netlify.app',
-  optionsSuccessStatus: 200
-}));
+server.use(cors());
 
 admin.initializeApp({
   credential: admin.credential.cert({
