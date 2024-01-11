@@ -14,7 +14,8 @@ const admin = require('firebase-admin');
 // http://localhost:5000
 server.use(bodyParser.json());
 server.use(cors({
-  origin: 'https://romantic-bardeen-dffbd3.netlify.app'
+  origin: 'https://romantic-bardeen-dffbd3.netlify.app',
+  optionsSuccessStatus: 200
 }));
 
 admin.initializeApp({
