@@ -718,5 +718,5 @@ server.post('/deleteuser', async (req, res) => {
 // ---------------------------------------------- 
 
 server.listen(port, () => {
-  console.log(`Server is listening at https://127.0.0.1:3000`);
+  console.log(`Server is listening`);
 });
